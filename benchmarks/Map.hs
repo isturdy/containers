@@ -47,6 +47,9 @@ main = do
         , bench "updateLookupWithKey absent" $ whnf (upd' Just evens) m_odd
         , bench "updateLookupWithKey present" $ whnf (upd' Just evens) m_even
         , bench "updateLookupWithKey delete" $ whnf (upd' (const Nothing) evens) m
+        , bench "updateLookupWithKey' absent" $ whnf (upd'' Just evens) m_odd
+        , bench "updateLookupWithKey' present" $ whnf (upd'' Just evens) m_even
+        , bench "updateLookupWithKey' delete" $ whnf (upd'' (const Nothing) evens) m
         , bench "alter absent"  $ whnf (alt id evens) m_odd
         , bench "alter insert"  $ whnf (alt (const (Just 1)) evens) m_odd
         , bench "alter update"  $ whnf (alt id evens) m_even
@@ -122,6 +125,8 @@ upd f xs m = foldl' (\m k -> M.update f k m) m xs
 
 upd' :: (Int -> Maybe Int) -> [Int] -> M.Map Int Int -> M.Map Int Int
 upd' f xs m = foldl' (\m k -> snd $ M.updateLookupWithKey (\_ a -> f a) k m) m xs
+upd'' :: (Int -> Maybe Int) -> [Int] -> M.Map Int Int -> M.Map Int Int
+upd'' f xs m = foldl' (\m k -> snd $ M.updateLookupWithKey' (\_ a -> f a) k m) m xs
 
 alt :: (Maybe Int -> Maybe Int) -> [Int] -> M.Map Int Int -> M.Map Int Int
 alt f xs m = foldl' (\m k -> M.alter f k m) m xs

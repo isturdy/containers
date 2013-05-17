@@ -128,6 +128,7 @@ module Data.Map.Base (
     , update
     , updateWithKey
     , updateLookupWithKey
+    , updateLookupWithKey'
     , alter
 
     -- * Combine
@@ -882,6 +883,26 @@ updateLookupWithKey = go
 {-# INLINABLE updateLookupWithKey #-}
 #else
 {-# INLINE updateLookupWithKey #-}
+#endif
+
+updateLookupWithKey' :: Ord k => (k -> a -> Maybe a) -> k -> Map k a
+                     -> (Maybe a,Map k a)
+updateLookupWithKey' f k m = go m id
+ where
+--   go :: Ord k => Map k a -> (Map k a -> Map k a) ->  (Maybe a,Map k a)
+   STRICT_1_OF_2(go)
+   go Tip cont = (Nothing,cont Tip)
+   go (Bin sx kx x l r) cont =
+          case compare k kx of
+               LT -> go l $ \l' -> cont $ balanceR kx x l' r
+               GT -> go r $ \r' -> cont $ balanceL kx x l r'
+               EQ -> case f kx x of
+                       Just x' -> (Just x',cont $ Bin sx kx x' l r)
+                       Nothing -> (Just x,cont $ glue l r)
+#if __GLASGOW_HASKELL__ >= 700
+{-# INLINABLE updateLookupWithKey' #-}
+#else
+{-# INLINE updateLookupWithKey' #-}
 #endif
 
 -- | /O(log n)/. The expression (@'alter' f k map@) alters the value @x@ at @k@, or absence thereof.

@@ -53,6 +53,7 @@ main = defaultMain
          , testCase "update" test_update
          , testCase "updateWithKey" test_updateWithKey
          , testCase "updateLookupWithKey" test_updateLookupWithKey
+         , testCase "updateLookupWithKey'" test_updateLookupWithKey'
          , testCase "alter" test_alter
          , testCase "union" test_union
          , testCase "mappend" test_mappend
@@ -391,6 +392,14 @@ test_updateLookupWithKey = do
     updateLookupWithKey f 5 (fromList [(5,"a"), (3,"b")]) @?= (Just "5:new a", fromList [(3, "b"), (5, "5:new a")])
     updateLookupWithKey f 7 (fromList [(5,"a"), (3,"b")]) @?= (Nothing,  fromList [(3, "b"), (5, "a")])
     updateLookupWithKey f 3 (fromList [(5,"a"), (3,"b")]) @?= (Just "b", singleton 5 "a")
+  where
+    f k x = if x == "a" then Just ((show k) ++ ":new a") else Nothing
+
+test_updateLookupWithKey' :: Assertion
+test_updateLookupWithKey' = do
+    updateLookupWithKey' f 5 (fromList [(5,"a"), (3,"b")]) @?= (Just "5:new a", fromList [(3, "b"), (5, "5:new a")])
+    updateLookupWithKey' f 7 (fromList [(5,"a"), (3,"b")]) @?= (Nothing,  fromList [(3, "b"), (5, "a")])
+    updateLookupWithKey' f 3 (fromList [(5,"a"), (3,"b")]) @?= (Just "b", singleton 5 "a")
   where
     f k x = if x == "a" then Just ((show k) ++ ":new a") else Nothing
 
